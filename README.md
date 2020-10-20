@@ -92,7 +92,11 @@ I then used the **NLTK Tokenizer** to turn these lists into **padded sequences**
           0,    0,    0, 3686, 4353,  970,  122, 2378, 1054, 2609,   49,
         306])`
 
-These 2014 sequences, along with their labeled sentiments, were fed into an initial neural network.
+These 2014 sequences, along with their labeled sentiments, were fed into an initial neural network. But before we touch on that, I'd like to share a visualization of the **25 most common bigrams** (two words that appear adjacent) in the data. This plot highlights another one of the challenges with handling this data--two kinds of Amazon:
+
+![25 Bigrams](/images/bigram_plot.PNG)
+
+It was impossible to filter for tweets about Amazon the company but not ***the*** Amazon at the same time. You'll notice that bigrams 8 through 15 (from "tip point" to "savannah -") are about the rainforest, not the tech giant. That being said, the fact that there are many **bigrams** about the Amazon rainforest does not necessarily mean that there was an equally large amount of **tweets** about the Amazon rainforest in the data, but rather that people talking about the Amazon rainforest show more homogeneity in their vocabulary than people talking about Amazon the brand. With that out of the way, we move on to the neural network.
 
 # Neural Network
 
@@ -114,7 +118,7 @@ A final **validation accuracy of 73%** was achieved. Considering the **extreme**
 
 # Twitter Chatbot
 
-This is where things gets cool. If you want the lengthy rundown, head on over to `twitter_chatbot.ipynb` as I'll just be providing a summary here. 
+This is where things get cool. If you want the lengthy rundown, head on over to `twitter_chatbot.ipynb` as I'll just be providing a summary here. 
 
 Through the process of defining five key functions `send_message()`, `store_messages()`, `clean_message()`, `greet()`, and `reply()` I built **the class `Conversation`,** which represents the unique interaction between one Twitter user and the chatbot. I'll be explaining each of these functions briefly before moving on to show how the `Conversation` class works within the Twitter livestream.
 
