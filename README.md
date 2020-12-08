@@ -34,6 +34,7 @@ The following libraries were used to make this project possible:
 - JSON
 - Pickle
 - Regular Expressions
+- Smtplib
 
 # Data Collection
 
@@ -214,17 +215,31 @@ In order for that bot to be *useful,* it needs to be contacting *real* users, in
 This class inherits from the parent `TwythonStreamer` and is loosely based on the default custom streamer provided in the [Twython documentation](https://twython.readthedocs.io/en/latest/usage/streaming_api.html)--the `on_error()` function is the same, but nothing else is. The `on_success()` method I've defined is what **brings everything together.** Let's print out all its glory with some explanation:
 
 ```
-def on_success(self, data):
-    if data['user']['followers_count'] > 10000:
-        if tweet_sentiment(data['text']) == 3:
-            c = Conversation(user_id = data['id'], t = t)
-            c.greet()
-            while (c.no_contact == False) and (c.passed_to_human == False):
-                time.sleep(120)
-                c.store_messages()
-                if c.messages != None:
-                    newest_message = c.messages[0]['text']
-                    c.reply(newest_message)
+class Stream(TwythonStreamer):
+
+    def on_success(self, data):
+# Check for enough clout
+        if data['user']['followers_count'] > 1000:
+# Check for positive sentiment
+            if tweet_sentiment(data['text']) == 3:
+# Instantiate Emailer
+                emailer = Emailer(sender_email = "user@company.com",
+                                  password = "password")
+# Instantiate Conversation
+                c = Conversation(user_id = data['id'], t = t)
+# Greet user
+                c.greet()
+# Converse with user until they opt out or collaborate
+                while (c.no_contact == False) and (c.passed_to_human == False):
+                    time.sleep(120)
+                    c.store_messages()
+                    if c.messages != None:
+                        newest_message = c.messages[0]['text']
+                        c.reply(newest_message)
+# Send an email to the employee tasked with chat
+                if c.passed_to_human == True:
+                    emailer.assign_chat(rec_email = "employee@company.com",
+                                        user_id = c.user_id)
 ```
 
 Here's the same thing back **line-for-line** in a human-readable way:
@@ -240,7 +255,9 @@ Here's the same thing back **line-for-line** in a human-readable way:
 - save the newest one,
 - and reply to it!
 
-The bottom-most portion of that process repeats so long as the human will participate, and so long as those two conditions aren't broken. Whenever a `Conversation` ends, we go back to streaming. Once a human initializes the `Stream`, **all of the rest automated.**
+The portion of that process under `# Converse ...` repeats so long as the human will participate, and so long as those two conditions aren't broken. Now, if a user we're conversing with *does* choose to collaborate with the brand in question: We break from this loop, and an email is sent to a human employee to finish out the deal. It's imperative that the chatbot is not responsible for making monetary offers.
+
+Whenever a `Conversation` ends, we go back to streaming. Once a human initializes the `Stream`, **all of this is automated.**
 
 # Conclusions
 
